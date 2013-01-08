@@ -3,6 +3,7 @@
 
 from tinkerforge.ip_connection import IPConnection
 from tinkerforge.bricklet_gps import GPS
+from tinkerforge.brick_servo import Servo
 from settings import HOST, PORT, GPSUID, point1
 from haversine import getDistance, getBearing
 
@@ -24,7 +25,7 @@ def cb_coordinates(latitude, ns, longitude, ew, pdop, hdop, vdop, epe):
         bearing = getBearing(latitude, longitude, point1[0], point1[1])
         bearing = (bearing + 360) % 360
         #course = (course - 180)
-        course = course/100.0000
+        course = course/100.0
         speed = speed/100.0
         bcdiff = (bearing - course)
         #print('Latitude: ' + str(latitude) + '° ' + ns)
@@ -53,7 +54,13 @@ if __name__ == "__main__":
 
     gps = GPS(GPSUID) # Create device object
     ipcon.add_device(gps) # Add device to ip connection
+    servo = Servo(SERVOUID) # Create device object
+    ipcon.add_device(servo) # Add device to IP connection
     # Don't use device before it is added to a connection
+
+
+
+
 
     # Set Period for coordinates callback to 1s (1000ms)
     # Note: The callback is only called every second if the 
