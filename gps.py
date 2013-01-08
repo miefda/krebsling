@@ -23,8 +23,8 @@ def cb_coordinates(latitude, ns, longitude, ew, pdop, hdop, vdop, epe):
         distance = getDistance(latitude, longitude, point1[0], point1[1])
         bearing = getBearing(latitude, longitude, point1[0], point1[1])
         bearing = (bearing + 360) % 360
-        course = (course - 180)
-        course = course/100.0
+        #course = (course - 180)
+        course = course/100.0000
         speed = speed/100.0
         bcdiff = (bearing - course)
         #print('Latitude: ' + str(latitude) + '° ' + ns)
@@ -40,6 +40,14 @@ def cb_coordinates(latitude, ns, longitude, ew, pdop, hdop, vdop, epe):
     else:
         print('STOP! ' + str(fix) + " " + str(type(fix)))
 
+def cb_status(fix, sat, use):
+    if fix == 3 or fix == 2:
+        enable = True
+    else:
+        print("stop!!!1")
+
+
+
 if __name__ == "__main__":
     ipcon = IPConnection(HOST, PORT) # Create ip connection to brickd
 
@@ -51,8 +59,11 @@ if __name__ == "__main__":
     # Note: The callback is only called every second if the 
     #       coordinates have changed since the last call!
     gps.set_coordinates_callback_period(500)
+    gps.set_status_callback_period(50)
     # Register current callback to function cb_current
     gps.register_callback(gps.CALLBACK_COORDINATES, cb_coordinates)
+    gps.register_callback(gps.CALLBACK_STATUS, cb_status)
+    
 
 
 
