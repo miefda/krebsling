@@ -4,7 +4,7 @@
 from tinkerforge.ip_connection import IPConnection
 from tinkerforge.bricklet_gps import GPS
 from tinkerforge.brick_servo import Servo
-from settings import HOST, PORT, GPSUID, point1
+from settings import *
 from haversine import getDistance, getBearing
 
 
@@ -36,20 +36,33 @@ def cb_coordinates(latitude, ns, longitude, ew, pdop, hdop, vdop, epe):
         print("Bearing " + str(bearing) )
         print("bc diff: " + str(bcdiff))
         #return distance, bearing, course, speed, bcdiff
+        if distance > 10.0:
+            servo.set_position(steeringsrv, bcdiff * 10)
+            servo.set_position(motor, speed)
+        else:
+            servo.set_position(steeringsrv, mid)
+            servo.set_position(motor, stop)
 
 
     else:
         print('STOP! ' + str(fix) + " " + str(type(fix)))
+        servo.set_position(steeringsrv, mid)
+        servo.set_position(motor, stop)
 
 def cb_status(fix, sat, use):
     if fix == 3 or fix == 2:
         enable = True
     else:
+        enable = False
         print("stop!!!1")
+        servo.set_position(steeringsrv, mid)
+        servo.set_position(motor, stop)
+
 
 
 
 if __name__ == "__main__":
+    enable = False
     ipcon = IPConnection(HOST, PORT) # Create ip connection to brickd
 
     gps = GPS(GPSUID) # Create device object
@@ -57,9 +70,22 @@ if __name__ == "__main__":
     servo = Servo(SERVOUID) # Create device object
     ipcon.add_device(servo) # Add device to IP connection
     # Don't use device before it is added to a connection
+    servo.set_degree(motor, -9000, 9000)
+    servo.set_pulse_width(motor, 950, 1950)
+    servo.set_period(motor, 20000)
+    servo.set_acceleration(motor, 7000)
+    servo.set_velocity(motor, 0xFFFF) # Full speed
+    servo.set_degree(steeringsrv, -3600, 3600)
+    servo.set_pulse_width(steeringsrv, 955, 2000)
+    servo.set_period(steeringsrv, 20000)
+    servo.set_acceleration(steeringsrv, 7000) # Full acceleration 0xFFFF
+    servo.set_velocity(steeringsrv, 0xFFFF) # Full speed
+    
 
-
-
+    servo.set_position(motor, stop)
+    servo.set_position(steeringsrv, mid)
+    servo.enable(motor)
+    servo.enable(steeringsrv)
 
 
     # Set Period for coordinates callback to 1s (1000ms)
